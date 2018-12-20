@@ -2,6 +2,7 @@
 
 #include <ray.h>
 #include "objects/sphere.h"
+#include "objects/camera.h"
 #include "float.h"
 #include "hitablelist.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -28,7 +29,9 @@ vec3 color(const ray& r, hitable *scene){
     // color sphere red
     intersect_record rec;
     if (scene->hit(r,0.0,MAXFLOAT, rec)) {
-        return 0.5 * vec3(rec.normal.x()+1,rec.normal.y() + 1, rec.normal.z() +1);
+        vec3 target = rec.p + rec.normal + random_point_in_unit_sphere();
+        return 0.5 * color( ray(rec.p, target-rec.p), scene);
+        //return 0.5 * vec3(rec.normal.x()+1,rec.normal.y() + 1, rec.normal.z() +1);
     }
     else{
         vec3 unit_direction = unit_vector(r.direction());
@@ -43,10 +46,11 @@ vec3 color(const ray& r, hitable *scene){
 int main() {
     
     // Test some ppm output
-    int nx = 600;
-    int ny = 300;
+    int nx = 400;
+    int ny = 200;
+    int numSamples = 10;
     const int numChannels = 3;
-    const std::string fileName = "output.png";
+    const std::string fileName = "output3.png";
     unsigned char *imgData = new unsigned char[nx*ny*numChannels];
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
@@ -55,20 +59,33 @@ int main() {
     vec3 vertical(0.0,2.0,0.0);
     vec3 origin(0.0,0.0,0.0);
     
+    //setup
+    camera cam;
     //Objects
-    hitable *list[2];
-    list[0] = new sphere(vec3(0,0,-1), 0.5);
-    list[1] = new sphere(vec3(0,-100.5,-1),100);
-    hitable_list *scene = new hitable_list(list,2);
+    hitable *list[3];
+    list[0] = new sphere(vec3(-0.7,0,-1), 0.5);
+    list[1] = new sphere(vec3(0.5,-0.2,-1), 0.5);
+    list[2] = new sphere(vec3(0,-100.5,-1),100);
+    hitable_list *scene = new hitable_list(list,3);
 
     // OUTPUT
     for (int j = ny-1; j >= 0; j--){
         for (int i = 0; i < nx; i++) {
-            
-            float u = float(i) / float(nx);
-            float v = float(j) / float(ny);
-            ray r(origin, lower_left_corner + u * horizontal + v * vertical);
-            vec3 col = color(r,scene);
+            //basic antialiasing
+            vec3 col(0,0,0);
+            for (int s=0;s< numSamples; s++){
+                float u = float(i+drand48()) / float(nx);
+                float v = float(j+drand48()) / float(ny);
+                ray r = cam.get_ray(u,v);
+                col += color(r,scene);
+            }
+            col /= float(numSamples);
+            //float u = float(i) / float(nx);
+            //float v = float(j) / float(ny);
+            //ray r(origin, lower_left_corner + u * horizontal + v * vertical);
+            // ray r = cam.get_ray(u,v);
+            // vec3 col = color(r,scene);
+            col = vec3(sqrt(col[0]),sqrt(col[1]),sqrt(col[2]));
             int ir = int(255.99 * col.r());
             int ig = int(255.99 * col.g());
             int ib = int(255.99 * col.b());
