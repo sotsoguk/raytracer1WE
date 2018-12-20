@@ -4,6 +4,8 @@
 #include "objects/sphere.h"
 #include "float.h"
 #include "hitablelist.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "io/stb_image_write.h"
 
 // first try in c++ after years, raytracing in a weekend..
 
@@ -43,6 +45,10 @@ int main() {
     // Test some ppm output
     int nx = 600;
     int ny = 300;
+    const int numChannels = 3;
+    const std::string fileName = "output.png";
+    unsigned char *imgData = new unsigned char[nx*ny*numChannels];
+
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
     vec3 lower_left_corner(-2.0,-1.0,-1.0);
     vec3 horizontal(4.0, 0.0,0.0);
@@ -66,8 +72,13 @@ int main() {
             int ir = int(255.99 * col.r());
             int ig = int(255.99 * col.g());
             int ib = int(255.99 * col.b());
-            std::cout << ir << " " << ig << " " << ib << "\n";
+            //std::cout << ir << " " << ig << " " << ib << "\n";
+            imgData[(nx*numChannels)*(ny -1 -j) + numChannels*i+0] = ir;
+            imgData[(nx*numChannels)*(ny -1 -j) + numChannels*i+1] = ig;
+            imgData[(nx*numChannels)*(ny -1 -j) + numChannels*i+2] = ib;
         }
     }
 
+    stbi_write_png(fileName.c_str(), nx, ny, numChannels, imgData, nx*numChannels);
+    delete[] imgData;
 }
