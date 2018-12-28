@@ -6,7 +6,7 @@
 #include "float.h"
 #include "hitablelist.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "io/stb_image_write.h"
+#include "io/stb_image_write.h"‚
 
 // first try in c++ after years, raytracing in a weekend..
 
@@ -48,7 +48,7 @@ int main() {
     // Test some ppm output
     int nx = 400;
     int ny = 200;
-    int numSamples = 10;
+    int numSamples = 100;
     const int numChannels = 3;
     const std::string fileName = "output3.png";
     unsigned char *imgData = new unsigned char[nx*ny*numChannels];
